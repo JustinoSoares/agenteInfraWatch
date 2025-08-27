@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { getServerId } from "./getServerId.js";
 import { collectMetrics } from "./collectMetrics.js"; // se separaste
 
@@ -45,9 +47,9 @@ export async function startServer() {
   const serverId = await getServerId();
   //console.log(`Servidor iniciado com ID: ${serverId}`);
   setInterval(async () => {
-  const payload = await collectMetrics(serverId);
-  console.log("Payload to send:");
-  //console.log(payload);
-  await requestAPI(payload);
-   }, 15000);
+    const payload = await collectMetrics(serverId);
+    console.log("Payload to send:");
+    //console.log(payload);
+    await requestAPI(payload);
+  }, 15000);
 }

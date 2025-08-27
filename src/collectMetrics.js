@@ -1,9 +1,10 @@
+#!/usr/bin/env node
+
 // Coleta métricas
 import si from "systeminformation";
 import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
-
 
 export async function collectMetrics(serverId) {
     try {
@@ -16,6 +17,7 @@ export async function collectMetrics(serverId) {
         const netInterfaces = await si.networkInterfaces();
         const cpuTemp = await si.cpuTemperature();
         const battery = await si.battery();
+        const processes = await si.processes();
 
         function getBootTime() {
             const timeData = si.time();
@@ -54,7 +56,22 @@ export async function collectMetrics(serverId) {
                 level: battery.hasBattery ? battery.percent + "%" : "N/A",
                 plugged: battery.hasBattery ? battery.isCharging : "N/A",
             },
+            processes: {
+                total: processes.all,
+                running: processes.running,
+                blocked: processes.blocked,
+                sleeping: processes.sleeping,
+                unknown: processes.unknown,
+            },
         };
+        console.log("Processos:", {
+            total: processes.all,
+            running: processes.running,
+            blocked: processes.blocked,
+            sleeping: processes.sleeping,
+            unknown: processes.unknown,
+            //list : processes.list.some(p => p.name.includes("nginx"))
+        });
 
         //await axios.post(API_URL, payload);
         //console.log("Métricas enviadas:", payload);

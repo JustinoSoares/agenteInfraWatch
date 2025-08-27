@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import fs from "fs";
 import path from "path";
 import si from "systeminformation";
@@ -33,7 +35,8 @@ export async function login() {
             process.exit(1);
         }
     } catch (error) {
-        spinner.fail(`Não foi possível conectar ao servidor`);
+        //spinner.fail(`Não foi possível conectar ao servidor`);
+        spinner.fail(`Não foi possível conectar ao servidor`, error);
         process.exit(1);
     }
 }
