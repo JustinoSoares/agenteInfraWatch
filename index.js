@@ -5,12 +5,10 @@ import { getServerId } from "./src/getServerId.js";
 import { startServer } from "./src/startServer.js";
 import { collectMetrics } from "./src/collectMetrics.js"; // se separaste
 
+import "./test3.js";
 // limpar o terminal
 
-
-
 export { login, getServerId, startServer, collectMetrics };
-
 
 // Início do programa
 /*(async () => {

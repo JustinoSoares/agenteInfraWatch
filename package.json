@@ -24,7 +24,9 @@
     "commander": "^14.0.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "net-snmp": "^3.25.0",
     "ora": "^8.2.0",
+    "ping": "^0.4.4",
     "systeminformation": "^5.27.7"
   },
   "devDependencies": {
