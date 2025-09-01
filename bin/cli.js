@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { login, getServerId, startServer, collectMetrics } from "../index.js";
+import { login, getServerId, startServer, getDevicesData } from "../index.js";
 import { updateServerId } from "../src/getServerId.js";
+import ora from "ora";
 
 const program = new Command();
 
@@ -25,12 +26,23 @@ program
     const id = await getServerId(true);
   });
 
-  program
+program
   .command("update")
   .description("Atualiza ou define o ID do servidor")
   .option("-f, --force", "Forçar atualização mesmo que já exista")
   .action(async (options) => {
-      await updateServerId();
+    await updateServerId();
+  });
+
+program
+  .command("agents")
+  .description("Lista os dispositivos monitorados")
+  .action(async () => {
+    const sppiner = ora("Obtendo lista de dispositivos...").start();
+    setInterval(async () => {
+      await getDevicesData();
+    }, 10000);
+    // Aqui você pode chamar uma função para listar os dispositivos
   });
 
 program
@@ -41,8 +53,6 @@ program
     await startServer();
     //console.log(`Servidor iniciado com ID: ${serverId}`);
     //setInterval(() => collectMetrics(serverId), 1500);
-
-
   });
 
 program.parseAsync(process.argv);
