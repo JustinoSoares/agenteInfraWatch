@@ -4,7 +4,9 @@
 import si from "systeminformation";
 import axios from "axios";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({
+    quiet: true,
+});
 
 export async function collectMetrics(serverId) {
     try {
@@ -18,6 +20,7 @@ export async function collectMetrics(serverId) {
         const cpuTemp = await si.cpuTemperature();
         const battery = await si.battery();
         const processes = await si.processes();
+
 
         function getBootTime() {
             const timeData = si.time();
@@ -63,18 +66,28 @@ export async function collectMetrics(serverId) {
                 sleeping: processes.sleeping,
                 unknown: processes.unknown,
             },
-        };
-        console.log("Processos:", {
-            total: processes.all,
-            running: processes.running,
-            blocked: processes.blocked,
-            sleeping: processes.sleeping,
-            unknown: processes.unknown,
-            //list : processes.list.some(p => p.name.includes("nginx"))
-        });
+            disk_space: await (async () => {
+                const fsSize = await si.fsSize();
 
-        //await axios.post(API_URL, payload);
-        //console.log("Métricas enviadas:", payload);
+                const total = fsSize.reduce(
+                    (acc, disk) => {
+                        acc.size += disk.size;
+                        acc.used += disk.used;
+                        return acc;
+                    },
+                    { size: 0, used: 0 }
+                );
+
+                const available = total.size - total.used;
+
+                return {
+                    size: (total.size / 1024 / 1024 / 1024).toFixed(2) + " GB",
+                    used: (total.used / 1024 / 1024 / 1024).toFixed(2) + " GB",
+                    available: (available / 1024 / 1024 / 1024).toFixed(2) + " GB",
+                    use: ((total.used / total.size) * 100).toFixed(2) + "%"
+                };
+            })(),
+        };
         return payload;
     } catch (err) {
         console.error("Erro ao coletar/enviar métricas:", err.message);

@@ -4,7 +4,9 @@ import fs from "fs";
 import readline from "readline";
 import dotenv from "dotenv";
 import path from "path";
-dotenv.config();
+dotenv.config({
+    quiet: true,
+});
 const CONFIG_PATH = path.resolve("../config.json");
 export function askQuestion(query) {
     const rl = readline.createInterface({

@@ -10,10 +10,13 @@ import ora from "ora";
 import { exit } from "process";
 import { askQuestion, isLoggedIn } from "./utils.js"; // Importa funções utilitárias
 import { login } from "./login.js"; // Importa a função de login
-dotenv.config();
+dotenv.config({
+  quiet: true,
+});
 
 const CONFIG_PATH = path.resolve("../config.json");
 const API_URL = process.env.API_URL;
+const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
 
 function saveServerId(newId) {
   let config = {};
@@ -34,6 +37,60 @@ function saveServerId(newId) {
   // Salva de volta
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
+
+function unsaveServerId() {
+  let config = {};
+  // Se existir config.json, carrega ele
+  if (fs.existsSync(CONFIG_PATH)) {
+    try {
+      const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
+      config = JSON.parse(raw);
+    } catch {
+      config = {};
+    }
+  }
+
+  // Remove o serverId sem tocar nos outros campos
+  delete config.serverId;
+
+  // Salva de volta
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
+
+export async function verifyServer(token, newId) {
+  const spinner = ora("Verificando o servidor ...").start(); // inicia o loading
+  const response = await fetch(`${API_URL}/api/v1/server/exist/` + newId, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (response.status !== 200) {
+    if (response.status === 403 || response.status === 401) {
+      spinner.fail("Usuário não autorizado.");
+    } else spinner.fail("Este servidor não existe.");
+    exit(1);
+  }
+  spinner.succeed("Verificação bem-sucedida: " + newId);
+  return response;
+}
+
+export const setServerId = async () => {
+  if (!isLoggedIn()) {
+    console.log("Você precisa estar logado para definir um servidor.");
+    await login();
+  }
+  if (CONFIG.serverId !== undefined) {
+    console.log("O Servidor já está definido: " + CONFIG.serverId);
+    exit(0);
+  }
+  const newId = await askQuestion("Digite o ID do Servidor: ");
+  await verifyServer(CONFIG.token, newId);
+  saveServerId(newId);
+  return newId;
+};
+
 // Carrega ou cria ID do servidor
 export async function getServerId() {
   if (!isLoggedIn()) {
@@ -41,34 +98,16 @@ export async function getServerId() {
     await login();
   }
 
-  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-  if (config.serverId === undefined) {
+  if (CONFIG.serverId === undefined) {
     console.log(
       "Nenhum ID de servidor encontrado. Por favor, defina um novo ID."
     );
-    const newId = await askQuestion("Digite o ID deste agente: ");
-    const response = await fetch(`${API_URL}/api/v1/server/exist/` + newId, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`,
-      },
-    });
-    const spinner = ora("Verificando o servidor ...").start(); // inicia o loading
-    if (response.status !== 200) {
-      if (response.status === 403 || response.status === 401) {
-        spinner.fail("Usuário não autorizado.");
-      } else spinner.fail("Este servidor não existe.");
-      exit(1);
-    }
-    saveServerId(newId);
-    spinner.succeed("Verificação bem-sucedida: " + newId);
+    const newId = await addServer();
+    console.log(newId);
     return newId;
-    //exit(0);
   } else {
-    console.log(config.serverId);
-    return config.serverId;
-    //exit(0);
+    console.log(CONFIG.serverId);
+    return CONFIG.serverId;
   }
 }
 
@@ -79,10 +118,8 @@ export async function updateServerId() {
   }
 
   let config = {};
-  if (fs.existsSync(CONFIG_PATH)) {
-    try {
-      config = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-    } catch {}
+  if (CONFIG.serverId === undefined) {
+    console.log("Nenhum ID de servidor encontrado.");
   }
 
   const newId = await askQuestion("Digite o novo ID deste agente: ");
@@ -94,10 +131,10 @@ export async function updateServerId() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`,
+        Authorization: `Bearer ${CONFIG.token}`,
       },
     });
-    if (existServer.status === 403) {
+    if (existServer.status === 403 || existServer.status === 401) {
       spinner.fail("Usuário não autorizado.");
       exit(1);
     }
@@ -111,4 +148,19 @@ export async function updateServerId() {
     spinner.fail("Erro ao verificar o servidor.");
     exit(1);
   }
+}
+
+export async function  unsetServer() {
+  if (!isLoggedIn()) {
+    console.log("Você precisa estar logado para remover o ID do servidor.");
+    await login();
+  }
+
+  if (CONFIG.serverId === undefined) {
+    console.log("Nenhum ID de servidor encontrado.");
+    exit(0);
+  }
+
+  unsaveServerId();
+  console.log("ID do servidor removido com sucesso.");
 }

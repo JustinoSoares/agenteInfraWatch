@@ -2,9 +2,13 @@
 
 import path from "path";
 import dotenv from "dotenv";
+import fs from "fs";
+import axios from "axios";
 import ora from "ora"; // Biblioteca para mostrar loading no terminal
 import { askQuestion, saveToken } from "./utils.js"; // Importa funções utilitárias
-dotenv.config();
+dotenv.config({
+  quiet: true,
+});
 
 const CONFIG_PATH = path.resolve("../config.json");
 const API_URL = process.env.API_URL;
@@ -16,28 +20,30 @@ export async function login() {
   const spinner = ora("Fazendo login...").start(); // inicia o loading
 
   try {
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
+    const response = await axios.post(`${API_URL}/api/v1/auth/login`, {
+      username,
+      password,
     });
 
-    if (response.status === 200) {
-      spinner.succeed("✅ Login bem-sucedido!");
-      saveToken(response.data.token); // salva o token no config.json
-      return response.data; // pode devolver o token ou dados do usuário
+    //console.log("response", response.data);
+
+    // se chegou aqui, status é 2xx
+    spinner.succeed("✅ Login bem-sucedido!");
+    saveToken(response.data.token);
+    return true;
+  } catch (err) {
+    if (err.response) {
+      // servidor respondeu com erro
+      spinner.fail(`Falha no login: ${err.response.data.message || "Erro de autenticação"}`);
     } else {
-      spinner.fail(`❌ Falha no login: ${response.data.message}`);
-      process.exit(1);
+      // erro de rede ou timeout
+      spinner.fail(`Erro de conexão: ${err.message}`);
     }
-  } catch (error) {
-    //spinner.fail(`Não foi possível conectar ao servidor`);
-    spinner.fail(`Não foi possível conectar ao servidor`, error);
     process.exit(1);
   }
+}
+
+export async function logout() {
+  saveToken(null);
+  console.log("✅ Logout realizado com sucesso!");
 }

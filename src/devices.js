@@ -3,7 +3,9 @@ import snmp from "net-snmp";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({
+    quiet: true,
+});
 import { isLoggedIn } from "./utils.js";
 import { getServerId } from "./getServerId.js";
 

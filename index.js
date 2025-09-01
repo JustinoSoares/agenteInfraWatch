@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
-import { login } from "./src/login.js";
+import { login, logout } from "./src/login.js";
 import { getServerId } from "./src/getServerId.js";
 import { startServer } from "./src/startServer.js";
 import { collectMetrics } from "./src/collectMetrics.js"; // se separaste
 import { getDevicesData } from "./src/devices.js"; // se separaste
+import dotenv from "dotenv";
+dotenv.config({
+    quiet: true,
+});
 // limpar o terminal
 
-export { login, getServerId, startServer, collectMetrics, getDevicesData };
+export { login, getServerId, startServer, collectMetrics, getDevicesData, logout };
 
 // Início do programa
 /*(async () => {
