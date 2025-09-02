@@ -39,6 +39,7 @@ async function requestAPI(payload) {
       activated_interfaces: payload["activated_interfaces"],
       cpu_temperature: payload["cpu_temperature"],
       battery: payload["battery"],
+      timeStamp: new Date().toISOString(),
     }),
   });
   if (!response.ok) {

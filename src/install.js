@@ -4,7 +4,6 @@ import path from "path";
 import { execSync } from "child_process";
 import { Command } from "commander";
 
-
 export function installLinux() {
   console.log(`${process.execPath} ${process.argv[1]} server start`);
   const service = `
@@ -13,7 +12,7 @@ Description=Agente de monitoramento Infra-Watch
 After=network.target
 
 [Service]
-ExecStart=${process.execPath} ${process.argv[1]} start
+ExecStart=npx infra-watch server start
 Restart=always
 User=${process.env.USER}
 Environment=NODE_ENV=production

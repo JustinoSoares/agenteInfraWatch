@@ -41,8 +41,7 @@ server
   .command("get")
   .description("Obtém o ID do servidor")
   .action(async () => {
-    const id = await getServerId(true);
-    console.log(`ID do servidor: ${id}`);
+    await getServerId(true);
   });
 
 server
