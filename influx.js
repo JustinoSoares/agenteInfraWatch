@@ -26,18 +26,20 @@ async function writeLog(service, level, message, code) {
     }
 }
 
+import { parse } from "csv-parse/sync";
+
 async function queryLogs() {
     const fluxQuery = `
-    from(bucket: "${BUCKET}")
-      |> range(start: -1h)  // últimos 60 minutos
-  `;
+      from(bucket: "${BUCKET}")
+        |> range(start: -1h)
+    `;
 
     const res = await fetch(`${INFLUX_URL}/api/v2/query?org=${ORG}`, {
         method: "POST",
         headers: {
             "Authorization": `Token ${TOKEN}`,
             "Content-Type": "application/vnd.flux",
-            "Accept": "application/csv" // ou "application/json" se preferir
+            "Accept": "application/csv"
         },
         body: fluxQuery
     });
@@ -48,11 +50,20 @@ async function queryLogs() {
         return;
     }
 
-    const data = await res.text(); // se for CSV
-    console.log(data);
+    const csvText = await res.text();
+
+    // Converte CSV -> JSON
+    const records = parse(csvText, {
+        columns: true, // usa a primeira linha como cabeçalho
+        skip_empty_lines: true
+    });
+
+    console.log(records);
+    return records;
 }
+
 
 queryLogs();
 
 // exemplo de uso:
-//writeLog("api", "error", "Falha ao conectar ao DB", 500);
+//writeLog("apisss", "error", "Falha ao conectar ao DB", 500);

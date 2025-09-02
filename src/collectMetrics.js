@@ -21,7 +21,6 @@ export async function collectMetrics(serverId) {
         const battery = await si.battery();
         const processes = await si.processes();
 
-
         function getBootTime() {
             const timeData = si.time();
             // calculando o boot
@@ -32,39 +31,39 @@ export async function collectMetrics(serverId) {
 
         const payload = {
             serverId: serverId,
-            name_server: osInfo.hostname,
-            version: osInfo.release,
-            last_boot: getBootTime(),
-            fisical_nucleos: cpu.physicalCores,
-            logical_nucleos: cpu.cores,
-            cpu_usage: load.currentLoad.toFixed(2) + "%",
-            cpu_frequency: cpu.speed + " GHz",
+            name_server: `${osInfo.hostname}`,
+            version: `${osInfo.release}`,
+            last_boot: `${getBootTime()}`,
+            fisical_nucleos: `${cpu.physicalCores}`,
+            logical_nucleos: `${cpu.cores}`,
+            cpu_usage: `${load.currentLoad.toFixed(2)}%`,
+            cpu_frequency: `${cpu.speed}GHz`,
             ram_usage: {
-                total: (mem.total / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                used: (mem.active / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                available: (mem.available / 1024 / 1024 / 1024).toFixed(2) + " GB",
+                total: `${(mem.total / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                used: `${(mem.active / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                available: `${(mem.available / 1024 / 1024 / 1024).toFixed(2)}GB`,
             },
             swap_usage: {
-                total: (swap.total / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                used: (swap.used / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                available: (swap.free / 1024 / 1024 / 1024).toFixed(2) + " GB",
+                total: `${(swap.total / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                used: `${(swap.used / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                available: `${(swap.free / 1024 / 1024 / 1024).toFixed(2)}GB`,
             },
-            sendData: (netStats[0]?.tx_bytes / 1024 / 1024).toFixed(2) + " MB",
-            receiveData: (netStats[0]?.rx_bytes / 1024 / 1024).toFixed(2) + " MB",
+            sendData: `${(netStats[0]?.tx_bytes / 1024 / 1024).toFixed(2)}MB`,
+            receiveData: `${(netStats[0]?.rx_bytes / 1024 / 1024).toFixed(2)}MB`,
             activated_interfaces: netInterfaces
                 .filter(n => n.operstate === "up")
                 .map(n => n.iface),
-            cpu_temperature: cpuTemp.main ? cpuTemp.main + " °C" : "N/A",
+            cpu_temperature: cpuTemp.main ? `${cpuTemp.main}°C` : "unknown",
             battery: {
-                level: battery.hasBattery ? battery.percent + "%" : "N/A",
-                plugged: battery.hasBattery ? battery.isCharging : "N/A",
+                level: battery.hasBattery ? `${battery.percent}%` : "unknown",
+                plugged: battery.hasBattery ? `${battery.isCharging}` : "unknown",
             },
             processes: {
-                total: processes.all,
-                running: processes.running,
-                blocked: processes.blocked,
-                sleeping: processes.sleeping,
-                unknown: processes.unknown,
+                total: `${processes.all}`,
+                running: `${processes.running}`,
+                blocked: `${processes.blocked}`,
+                sleeping: `${processes.sleeping}`,
+                unknown: `${processes.unknown}`,
             },
             disk_space: await (async () => {
                 const fsSize = await si.fsSize();
@@ -81,10 +80,10 @@ export async function collectMetrics(serverId) {
                 const available = total.size - total.used;
 
                 return {
-                    size: (total.size / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                    used: (total.used / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                    available: (available / 1024 / 1024 / 1024).toFixed(2) + " GB",
-                    use: ((total.used / total.size) * 100).toFixed(2) + "%"
+                    size: `${(total.size / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                    used: `${(total.used / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                    available: `${(available / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                    use: `${((total.used / total.size) * 100).toFixed(2)}%`
                 };
             })(),
         };

@@ -1,92 +1,82 @@
+const INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"; // endpoint do InfluxDB (Cloud ou seu servidor)
+const ORG = "Infra-watch";
+const BUCKET = "infra-watch";
+const TOKEN = "oGlZ3AapuGDyZW0FukmlXCetJZ7E6ongRVzwctXfr9mEJH3suPAHxMpKreDJZH5a6r0Wy1rrMqgbj9SkjLcxLw=="; // seu token gerado
 
-// em Node 18+ já tem fetch nativo
-
-const ZABBIX_URL = 'https://infra-watch.zabbix.cloud/api_jsonrpc.php';
-const ZABBIX_USER = "Admin";
-const ZABBIX_PASSWORD = "LKhjtLwI";
-
-async function login() {
-  const res = await fetch(ZABBIX_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json-rpc" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      method: "user.login",
-      params: {
-        username: ZABBIX_USER,
-        password: ZABBIX_PASSWORD,
-      },
-      id: 1,
-      auth: null,
-    }),
-  });
-
-  const data = await res.json();
-  console.log("Login", data);
-  return data.result; // auth token
+function escapeInfluxValue(value) {
+  return value
+    .replace(/\\/g, '\\\\') // Escape backslashes
+    .replace(/"/g, '\\"')   // Escape double quotes
+    .replace(/,/g, '\\,')   // Escape commas
+    .replace(/=/g, '\\=')   // Escape equals
+    .replace(/ /g, '\\ ');  // Escape spaces
 }
 
-// 2 - Pegar hosts
-async function getHosts(auth) {
-  const res = await fetch(ZABBIX_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json-rpc" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      method: "host.get",
-      params: {
-        output: ["hostid", "host", "status", "available"], // status (enable/disable), available (0=unknown, 1=available, 2=unavailable)
-      },
-      auth,
-      id: 2,
-    }),
-  });
-
-  const data = await res.json();
-  return data.result;
-}
-
-// 3 - Pegar métricas específicas (uptime e memória)
-async function getItems(auth, hostid) {
-  const res = await fetch(ZABBIX_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json-rpc" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      method: "item.get",
-      params: {
-        hostids: hostid,
-        output: ["itemid", "key_", "lastvalue", "name"],
-        filter: {
-          key_: [
-            "system.uptime", // Uptime
-            "vm.memory.size[used]", // Memória usada
-          ],
-        },
-      },
-      auth,
-      id: 3,
-    }),
-  });
-
-  const data = await res.json();
-  return data.result;
-}
-
-// 4 - Executar
-(async () => {
-  const auth = await login();
-  const hosts = await getHosts(auth);
-
-  for (const host of hosts) {
-    console.log(`\nHost: ${host.host} (ID: ${host.hostid})`);
-    console.log(`Status: ${host.status == 0 ? "Ativo" : "Desativado"}`);
-    console.log(`Disponibilidade: ${host.available == 1 ? "Disponível" : "Indisponível"}`);
-
-    const items = await getItems(auth, host.hostid);
-
-    for (const item of items) {
-      console.log(`${item.name}: ${item.lastvalue}`);
+// Utility function to convert object to InfluxDB fields
+function objectToFields(obj) {
+  let fields = [];
+  for (const [key, value] of Object.entries(obj)) {
+    if (value == null) continue; // Skip null/undefined
+    let formattedValue;
+    if (typeof value === 'string') {
+      formattedValue = `"${escapeInfluxValue(value)}"`;
+    } else if (typeof value === 'number') {
+      formattedValue = value.toString();
+    } else if (typeof value === 'boolean') {
+      formattedValue = value.toString();
+    } else {
+      // Convert other types to string and escape
+      formattedValue = `"${escapeInfluxValue(JSON.stringify(value))}"`;
     }
+    fields.push(`${escapeInfluxValue(key)}=${formattedValue}`);
   }
-})();
+  return fields.join(',');
+}
+
+async function writeLog(serverId, payload) {
+  // Validate inputs
+  if (!serverId || typeof serverId !== 'string') {
+    throw new Error('Invalid serverId: must be a non-empty string');
+  }
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid payload: must be a non-null object');
+  }
+
+  const timestamp = Date.now() * 1_000_000; // Nanoseconds
+  const fields = objectToFields(payload); // Convert payload to fields
+
+  // Construct line protocol
+  const lineProtocol = `metrics,serverId=${escapeInfluxValue(serverId)} ${fields} ${timestamp}`;
+
+  const url = `${INFLUX_URL}/api/v2/write?org=${ORG}&bucket=${BUCKET}&precision=ns`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${TOKEN}`,
+        'Content-Type': 'text/plain',
+      },
+      body: lineProtocol,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to write to InfluxDB: ${res.status} ${await res.text()}`);
+    }
+
+    console.log('Log written to InfluxDB');
+  } catch (error) {
+    throw new Error(`Error writing to InfluxDB: ${error.message}`);
+  }
+}
+
+const payload = {
+  temperature: 22.5,
+  status: 'active',
+  errorCount: 0,
+  details: { foo: 'bar' },
+};
+
+console.log(typeof payload, payload);
+
+//await writeLog('server-123', payload);

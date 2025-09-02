@@ -7,6 +7,7 @@ import { isLoggedIn } from "./utils.js";
 import path from "path";
 import fs from "fs";
 
+
 const CONFIG_PATH = path.resolve("../config.json");
 const API_URL = process.env.API_URL;
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
@@ -68,11 +69,11 @@ export async function startServer() {
 
     if (response.status === 403 || response.status === 401) {
       console.log("Usuário não autorizado.");
-      exit(1);
+      process.exit(1);
     }
     if (response.status !== 200) {
       console.log("Este servidor não existe. Por favor, registre o servidor primeiro.");
-      exit(1);
+      process.exit(1);
     }
 
     const data = await response.json();
