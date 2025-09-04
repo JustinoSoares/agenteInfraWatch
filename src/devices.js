@@ -14,11 +14,10 @@ const API_URL = process.env.API_URL;
 
 // OIDs comuns em SNMP
 const OIDS = {
-  uptime: "1.3.6.1.2.1.1.3.0", // System uptime
-  sysName: "1.3.6.1.2.1.1.5.0", // Nome do dispositivo
-  cpu: "1.3.6.1.4.1.2021.11.9.0", // CPU idle (UCD-SNMP MIB)
-  temp: "1.3.6.1.4.1.2021.13.16.2.1.3.1", // Temperatura (se suportado)
-  memTotal: "1.3.6.1.4.1.2021.4.5.0", // Memória total
+  sysDescr: "1.3.6.1.2.1.1.1.0",  // Descrição do sistema
+  uptime: "1.3.6.1.2.1.1.3.0",    // Uptime
+  sysName: "1.3.6.1.2.1.1.5.0",   // Nome do dispositivo
+  sysLocation: "1.3.6.1.2.1.1.6.0", // Localização
 };
 
 async function checkDevice(host, community = "public") {
@@ -37,7 +36,7 @@ async function checkDevice(host, community = "public") {
   }
 
   // 2. Se ativo, cria sessão SNMP
-  const session = snmp.createSession(host, community);
+  const session = snmp.createSession(host, community, {port : 1161});
 
   return new Promise((resolve) => {
     session.get(Object.values(OIDS), (error, varbinds) => {
@@ -82,16 +81,16 @@ export async function getDevicesData() {
 
   if (response.status === 200) {
     const devicesList = await response.json();
-    await Promise.all(devicesList.map(async (list) => checkDevice(list.host))).then((results) => {
+    await Promise.all(devicesList.map((list) => checkDevice(list.host))).then((results) => {
       results.forEach((status) => console.log(status));
     });
   } else {
     console.log("RESPONSE: ", response);
   }
 
-  //const devices = ["10.12.3.1", "10.12.3.2", "10.12.3.8"]; // lista de dispositivos
-  //Promise.all(devices.map(host => checkDevice(host)))
-  //.then(results => {
-  //results.forEach(status => console.log(status));
-  //});
+  /*const devices = ["127.0.0.2", "192.168.1.144"]; // lista de dispositivos
+  await Promise.all(devices.map(host => checkDevice(host)))
+  .then(results => {
+  results.forEach(status => console.log(status));
+  });*/
 }
