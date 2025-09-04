@@ -52,10 +52,9 @@ async function checkDevice(host, community = "public") {
         const key = Object.keys(OIDS)[i];
         // Adiciona apenas se o valor for válido
         if (vb.value !== null && vb.value !== undefined) {
-          result.metrics[key] = vb.value ? vb.value.toString() : "unknown";
+          result.metrics[key] = vb.value ? vb.value.toString() : "";
         }
       });
-
       session.close();
       resolve(result);
     });

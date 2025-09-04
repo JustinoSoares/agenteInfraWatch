@@ -7,6 +7,7 @@ import ora from "ora";
 import os from "os";
 import fs from "fs";
 import { installLinux, installMac, installWindows } from "../src/install.js";
+import { exit } from "process";
 const PID_FILE = "/tmp/infra-watch.pid";
 
 const program = new Command();
@@ -41,7 +42,9 @@ server
   .command("get")
   .description("Obtém o ID do servidor")
   .action(async () => {
-    await getServerId(true);
+    const serverId = await getServerId(true);
+    console.log(serverId);
+    exit(0);
   });
 
 server

@@ -37,10 +37,12 @@ async function requestAPI(payload) {
       swap_usage: payload["swap_usage"],
       sendData: payload["sendData"],
       receiveData: payload["receiveData"],
-      activated_interfaces: payload["activated_interfaces"],
+      interfaces: payload["interfaces"],
       cpu_temperature: payload["cpu_temperature"],
+      services: payload["services"],
+      disk_space: payload["disk_space"],
       battery: payload["battery"],
-      timeStamp: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     }),
   });
   if (!response.ok) {
@@ -59,7 +61,7 @@ export async function startServer() {
   }
   try {
     const serverId = await getServerId();
-    const response = await fetch(`${API_URL}/api/v1/server/exist/${serverId}`, {
+    const response = await fetch(`${API_URL}/api/v1/server/exist/${serverId}/GET`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -78,11 +80,11 @@ export async function startServer() {
 
     const data = await response.json();
 
-    setInterval(async () => {
+    //setInterval(async () => {
       const payload = await collectMetrics(serverId);
       //console.log("Payload para enviar:", payload);
       await requestAPI(payload);
-    }, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
+     //}, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
   } catch (error) {
     console.error("Erro ao iniciar o servidor:", error);
   }

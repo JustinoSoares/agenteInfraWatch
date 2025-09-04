@@ -59,7 +59,7 @@ function unsaveServerId() {
 
 export async function verifyServer(token, newId) {
   const spinner = ora("Verificando o servidor ...").start(); // inicia o loading
-  const response = await fetch(`${API_URL}/api/v1/server/exist/` + newId, {
+  const response = await fetch(`${API_URL}/api/v1/server/exist/${newId}/POST`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -106,7 +106,7 @@ export async function getServerId() {
     console.log(newId);
     return newId;
   } else {
-    console.log(CONFIG.serverId);
+    //console.log(CONFIG.serverId);
     return CONFIG.serverId;
   }
 }
@@ -126,7 +126,7 @@ export async function updateServerId() {
   const spinner = ora("Verificando o servidor ...").start();
 
   try {
-    const url = `${API_URL}/api/v1/server/exist/${newId}`;
+    const url = `${API_URL}/api/v1/server/exist/${newId}/PUT`;
     const existServer = await fetch(url, {
       method: "GET",
       headers: {
@@ -138,7 +138,7 @@ export async function updateServerId() {
       spinner.fail("Usuário não autorizado.");
       exit(1);
     }
-    if (existServer.status !== 200) {
+    if (existServer.status !== 200 && existServer.status !== 423) {
       spinner.fail("Este servidor não existe.");
       exit(1);
     }
@@ -150,7 +150,7 @@ export async function updateServerId() {
   }
 }
 
-export async function  unsetServer() {
+export async function unsetServer() {
   if (!isLoggedIn()) {
     console.log("Você precisa estar logado para remover o ID do servidor.");
     await login();

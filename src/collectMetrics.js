@@ -8,6 +8,8 @@ dotenv.config({
     quiet: true,
 });
 
+const dataServices = 'sshd,nginx,apache2,mysql,mariadb,postgresql,redis,memcached,docker,containerd,kubelet,cron,systemd-journald,ufw,firewalld,fail2ban,rsyslog,vsftpd,proftpd,bind9,named,haproxy,keepalived,php-fpm,node,pm2,MSSQLSERVER,SQLAgent,W3SVC,DhcpServer,DNS,PrintSpooler,WinRM,BITS,TermService,LanmanServer,LanmanWorkstation,WindowsUpdate,Hyper-V Host Compute Service,vmms,IISADMIN';
+
 export async function collectMetrics(serverId) {
     try {
         const osInfo = await si.osInfo();
@@ -20,6 +22,9 @@ export async function collectMetrics(serverId) {
         const cpuTemp = await si.cpuTemperature();
         const battery = await si.battery();
         const processes = await si.processes();
+        const services = await si.services(dataServices);
+
+        const resultServices = services.filter(s => s.running === true);
 
         function getBootTime() {
             const timeData = si.time();
@@ -28,6 +33,10 @@ export async function collectMetrics(serverId) {
             const last_boot = new Date(bootTimestamp).toLocaleString("pt-PT");
             return last_boot;
         }
+
+        const result = resultServices
+            .map(s => `${s.name}/${s.mem}`)
+            .join(',');
 
         const payload = {
             serverId: serverId,
@@ -50,21 +59,17 @@ export async function collectMetrics(serverId) {
             },
             sendData: `${(netStats[0]?.tx_bytes / 1024 / 1024).toFixed(2)}MB`,
             receiveData: `${(netStats[0]?.rx_bytes / 1024 / 1024).toFixed(2)}MB`,
-            activated_interfaces: netInterfaces
-                .filter(n => n.operstate === "up")
-                .map(n => n.iface),
-            cpu_temperature: cpuTemp.main ? `${cpuTemp.main}°C` : "unknown",
+            interfaces: {
+                total : netInterfaces.length,
+                active : netInterfaces.filter(i => i.operstate === 'up').length,
+                inactive : netInterfaces.filter(i => i.operstate !== 'up').length,
+            },
+            cpu_temperature: cpuTemp.main ? `${cpuTemp.main}°C` : "",
             battery: {
-                level: battery.hasBattery ? `${battery.percent}%` : "unknown",
-                plugged: battery.hasBattery ? `${battery.isCharging}` : "unknown",
+                level: battery.hasBattery ? `${battery.percent}%` : "",
+                plugged: battery.hasBattery ? 'true' : 'false',
             },
-            processes: {
-                total: `${processes.all}`,
-                running: `${processes.running}`,
-                blocked: `${processes.blocked}`,
-                sleeping: `${processes.sleeping}`,
-                unknown: `${processes.unknown}`,
-            },
+            services: result,
             disk_space: await (async () => {
                 const fsSize = await si.fsSize();
 
@@ -87,6 +92,9 @@ export async function collectMetrics(serverId) {
                 };
             })(),
         };
+
+        //console.log("Disk space: ", payload.disk_space);
+        //console.log("PAYLOAD: ", payload);
         return payload;
     } catch (err) {
         console.error("Erro ao coletar/enviar métricas:", err.message);
