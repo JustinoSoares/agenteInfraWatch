@@ -92,9 +92,6 @@ export async function collectMetrics(serverId) {
                 };
             })(),
         };
-
-        //console.log("Disk space: ", payload.disk_space);
-        //console.log("PAYLOAD: ", payload);
         return payload;
     } catch (err) {
         console.error("Erro ao coletar/enviar métricas:", err.message);

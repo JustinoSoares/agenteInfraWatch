@@ -22,7 +22,7 @@ async function requestAPI(payload) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      // Adicione outros cabeçalhos, como autenticação, se necessário
+      Authorization: `Bearer ${CONFIG.token}`,
     },
     body: JSON.stringify({
       serverId: serverId,
@@ -50,6 +50,17 @@ async function requestAPI(payload) {
     return;
   }
   else {
+    const respo = await fetch(`${API_URL}/api/v1/device/datadevice/` + serverId, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CONFIG.token}`,
+      }
+    });
+    if (!respo.ok) {
+      console.error("Erro ao enviar dados do dispositivo:", respo.statusText);
+      return;
+    }
     console.log("Servidor iniciado com sucesso:", await response.json());
   }
 }
@@ -81,10 +92,10 @@ export async function startServer() {
     const data = await response.json();
 
     //setInterval(async () => {
-      const payload = await collectMetrics(serverId);
-      //console.log("Payload para enviar:", payload);
-      await requestAPI(payload);
-     //}, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
+    const payload = await collectMetrics(serverId);
+    //console.log("Payload para enviar:", payload);
+    await requestAPI(payload);
+    //}, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
   } catch (error) {
     console.error("Erro ao iniciar o servidor:", error);
   }
