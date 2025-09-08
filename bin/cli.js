@@ -6,7 +6,7 @@ import { setServerId, unsetServer, updateServerId } from "../src/getServerId.js"
 import ora from "ora";
 import os from "os";
 import fs from "fs";
-import { installLinux, installMac, installWindows } from "../src/install.js";
+import { installLinux, installMac, installWindows, uninstallLinux, uninstallMac, uninstallWindows } from "../src/install.js";
 import { exit } from "process";
 const PID_FILE = "/tmp/infra-watch.pid";
 
@@ -117,16 +117,26 @@ program
     }
   });
 
-
 program
-  .command("agents")
-  .description("Lista os dispositivos monitorados")
+  .command("uninstall")
+  .description("Remove o agente da inicialização automática do sistema")
   .action(async () => {
-    const sppiner = ora("Obtendo lista de dispositivos...").start();
-    setInterval(async () => {
-      await getDevicesData();
-    }, 10000);
-    // Aqui você pode chamar uma função para listar os dispositivos
+    const platform = os.platform();
+    console.log(`🔍 Detectando SO: ${platform}`);
+
+    try {
+      if (platform === "linux") {
+        uninstallLinux();
+      } else if (platform === "darwin") {
+        uninstallMac();
+      } else if (platform === "win32") {
+        uninstallWindows();
+      } else {
+        console.log("⚠️ Sistema operacional não suportado ainda.");
+      }
+    } catch (err) {
+      console.error("❌ Erro ao desinstalar:", err.message);
+    }
   });
 
 program.parseAsync(process.argv);

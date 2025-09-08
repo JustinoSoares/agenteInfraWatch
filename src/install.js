@@ -78,3 +78,47 @@ export function installWindows() {
 }
 
 
+export function uninstallLinux() {
+  const servicePath = "/etc/systemd/system/infra-watch.service";
+
+  try {
+    execSync(`sudo systemctl stop infra-watch`);
+    execSync(`sudo systemctl disable infra-watch`);
+    if (fs.existsSync(servicePath)) {
+      execSync(`sudo rm -f ${servicePath}`);
+    }
+    execSync(`sudo systemctl daemon-reload`);
+    console.log("🗑️ Infra-Watch removido do systemd!");
+  } catch (err) {
+    console.error("❌ Erro ao remover do systemd:", err.message);
+  }
+}
+
+export function uninstallMac() {
+  const plistPath = path.join(
+    process.env.HOME,
+    "Library/LaunchAgents/com.infra-watch.plist"
+  );
+
+  try {
+    execSync(`launchctl unload ${plistPath}`);
+    if (fs.existsSync(plistPath)) {
+      fs.unlinkSync(plistPath);
+    }
+    console.log("🗑️ Infra-Watch removido do macOS LaunchAgents!");
+  } catch (err) {
+    console.error("❌ Erro ao remover do macOS:", err.message);
+  }
+}
+
+
+export function uninstallWindows() {
+  try {
+    execSync(`schtasks /Delete /TN "InfraWatch" /F`, { stdio: "inherit" });
+    console.log("🗑️ Infra-Watch removido do Windows Scheduler!");
+  } catch (err) {
+    console.error("❌ Erro ao remover do Windows:", err.message);
+  }
+}
+
+

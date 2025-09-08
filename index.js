@@ -9,7 +9,6 @@ import dotenv from "dotenv";
 dotenv.config({
     quiet: true,
 });
-// limpar o terminal
 
 export { login, getServerId, startServer, collectMetrics, getDevicesData, logout };
 
