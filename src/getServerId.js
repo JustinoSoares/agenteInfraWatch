@@ -103,8 +103,8 @@ export async function getServerId() {
     console.log(
       "Nenhum ID de servidor encontrado. Por favor, defina um novo ID."
     );
-    const newId = await addServer();
-    console.log(newId);
+    const newId = await setServerId();
+    //console.log(newId);
     return newId;
   } else {
     //console.log(CONFIG.serverId);
