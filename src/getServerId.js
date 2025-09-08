@@ -14,7 +14,8 @@ dotenv.config({
   quiet: true,
 });
 
-const CONFIG_PATH = path.resolve("../config.json");
+const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const API_URL = process.env.API_URL;
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
 

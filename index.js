@@ -5,10 +5,20 @@ import { getServerId } from "./src/getServerId.js";
 import { startServer } from "./src/startServer.js";
 import { collectMetrics } from "./src/collectMetrics.js"; // se separaste
 import { getDevicesData } from "./src/devices.js"; // se separaste
+import fs from "fs";
+import path from "path";
 import dotenv from "dotenv";
 dotenv.config({
-    quiet: true,
+  quiet: true,
 });
+
+const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
+
+// garante que a pasta ~/.infra-watch existe
+if (!fs.existsSync(CONFIG_DIR)) {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+}
 
 export { login, getServerId, startServer, collectMetrics, getDevicesData, logout };
 

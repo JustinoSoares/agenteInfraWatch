@@ -10,10 +10,21 @@ dotenv.config({
   quiet: true,
 });
 
-const CONFIG_PATH = path.resolve("../config.json");
+const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
+
+// cria o arquivo se não existir
+if (!fs.existsSync(CONFIG_PATH)) {
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify({}), "utf-8");
+}
 const API_URL = process.env.API_URL;
 
+
+
 export async function login() {
+  if (!fs.existsSync(CONFIG_PATH)) {
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify({}), "utf-8");
+  }
   const username = await askQuestion("username: ");
   const password = await askQuestion("password: ");
 

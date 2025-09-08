@@ -7,7 +7,14 @@ import path from "path";
 dotenv.config({
     quiet: true,
 });
-const CONFIG_PATH = path.resolve("../config.json");
+const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
+
+// garante que a pasta ~/.infra-watch existe
+if (!fs.existsSync(CONFIG_DIR)) {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+}
+
 export function askQuestion(query) {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -19,8 +26,10 @@ export function askQuestion(query) {
     }));
 }
 
+
 export function saveToken(token) {
     let config = {};
+
 
     // Se já existe um config.json, carrega ele
     if (fs.existsSync(CONFIG_PATH)) {

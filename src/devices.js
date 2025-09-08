@@ -9,7 +9,8 @@ dotenv.config({
 import { isLoggedIn } from "./utils.js";
 import { getServerId } from "./getServerId.js";
 
-const CONFIG_PATH = path.resolve("../config.json");
+const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const API_URL = process.env.API_URL;
 
 // OIDs comuns em SNMP
