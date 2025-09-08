@@ -1,6 +1,6 @@
 {
   "name": "infra-watch",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "./src/index.js",
   "bin": {
     "infra-watch": "bin/cli.js"

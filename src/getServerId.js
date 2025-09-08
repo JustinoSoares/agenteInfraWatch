@@ -16,7 +16,7 @@ dotenv.config({
 
 const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
-const API_URL = process.env.API_URL;
+const API_URL = "https://infrawatch-in5r.onrender.com";
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
 
 function saveServerId(newId) {

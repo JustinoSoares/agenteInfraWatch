@@ -17,7 +17,7 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 if (!fs.existsSync(CONFIG_PATH)) {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify({}), "utf-8");
 }
-const API_URL = process.env.API_URL;
+const API_URL = "https://infrawatch-in5r.onrender.com";
 
 
 
