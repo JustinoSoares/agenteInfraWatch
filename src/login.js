@@ -6,11 +6,16 @@ import fs from "fs";
 import axios from "axios";
 import ora from "ora"; // Biblioteca para mostrar loading no terminal
 import { askQuestion, saveToken } from "./utils.js"; // Importa funções utilitárias
+import os from "os";
 dotenv.config({
   quiet: true,
 });
 
-const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+// Diretório home do usuário (funciona no Linux, macOS e Windows)
+const homeDir = os.homedir();
+
+// Caminho do diretório de config
+const CONFIG_DIR = path.join(homeDir, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 
 // cria o arquivo se não existir

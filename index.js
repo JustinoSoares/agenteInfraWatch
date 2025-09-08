@@ -7,12 +7,17 @@ import { collectMetrics } from "./src/collectMetrics.js"; // se separaste
 import { getDevicesData } from "./src/devices.js"; // se separaste
 import fs from "fs";
 import path from "path";
+import os from "os";
 import dotenv from "dotenv";
 dotenv.config({
   quiet: true,
 });
 
-const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+// Diretório home do usuário (funciona no Linux, macOS e Windows)
+const homeDir = os.homedir();
+
+// Caminho do diretório de config
+const CONFIG_DIR = path.join(homeDir, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 
 // garante que a pasta ~/.infra-watch existe

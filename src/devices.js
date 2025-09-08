@@ -2,6 +2,7 @@ import ping from "ping";
 import snmp from "net-snmp";
 import path from "path";
 import fs from "fs";
+import os from "os";
 import dotenv from "dotenv";
 dotenv.config({
     quiet: true,
@@ -9,7 +10,11 @@ dotenv.config({
 import { isLoggedIn } from "./utils.js";
 import { getServerId } from "./getServerId.js";
 
-const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+// Diretório home do usuário (funciona no Linux, macOS e Windows)
+const homeDir = os.homedir();
+
+// Caminho do diretório de config
+const CONFIG_DIR = path.join(homeDir, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const API_URL = "https://infrawatch-in5r.onrender.com";
 

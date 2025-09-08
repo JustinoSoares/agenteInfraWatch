@@ -4,11 +4,16 @@ import { getServerId } from "./getServerId.js";
 import { collectMetrics } from "./collectMetrics.js"; // se separaste
 import { login } from "./login.js";
 import { isLoggedIn } from "./utils.js";
+import os from "os";
 import path from "path";
 import fs from "fs";
 
 
-const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+// Diretório home do usuário (funciona no Linux, macOS e Windows)
+const homeDir = os.homedir();
+
+// Caminho do diretório de config
+const CONFIG_DIR = path.join(homeDir, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const API_URL = "https://infrawatch-in5r.onrender.com";
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));

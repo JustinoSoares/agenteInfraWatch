@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import si from "systeminformation";
 import axios from "axios";
+import os from "os";
 import readline from "readline";
 import dotenv from "dotenv";
 import ora from "ora";
@@ -14,7 +15,11 @@ dotenv.config({
   quiet: true,
 });
 
-const CONFIG_DIR = path.join(process.env.HOME, ".infra-watch");
+// Diretório home do usuário (funciona no Linux, macOS e Windows)
+const homeDir = os.homedir();
+
+// Caminho do diretório de config
+const CONFIG_DIR = path.join(homeDir, ".infra-watch");
 const CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
 const API_URL = "https://infrawatch-in5r.onrender.com";
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));

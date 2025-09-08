@@ -29,6 +29,8 @@
    ```bash
    npm install --global infra-watch
    ```
+   **💡 Observação.:** deves executar os comandos como admin
+
 
 2. Execute o CLI:
    ```bash

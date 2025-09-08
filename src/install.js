@@ -1,9 +1,17 @@
-import os from "os";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { execSync } from "child_process";
-import { Command } from "commander";
 
+/**
+ * Helpers cross-platform
+ */
+const username = os.userInfo().username;
+const homeDir = os.homedir();
+
+/**
+ * Linux (systemd)
+ */
 export function installLinux() {
   console.log(`${process.execPath} ${process.argv[1]} server start`);
   const service = `
@@ -14,7 +22,7 @@ After=network.target
 [Service]
 ExecStart=npx infra-watch server start
 Restart=always
-User=${process.env.USER}
+User=${username}
 Environment=NODE_ENV=production
 WorkingDirectory=${process.cwd()}
 
@@ -34,7 +42,25 @@ WantedBy=multi-user.target
   console.log("✅ Infra-Watch instalado no systemd e iniciará no boot!");
 }
 
+export function uninstallLinux() {
+  const servicePath = "/etc/systemd/system/infra-watch.service";
 
+  try {
+    execSync(`sudo systemctl stop infra-watch`);
+    execSync(`sudo systemctl disable infra-watch`);
+    if (fs.existsSync(servicePath)) {
+      execSync(`sudo rm -f ${servicePath}`);
+    }
+    execSync(`sudo systemctl daemon-reload`);
+    console.log("🗑️ Infra-Watch removido do systemd!");
+  } catch (err) {
+    console.error("❌ Erro ao remover do systemd:", err.message);
+  }
+}
+
+/**
+ * macOS (launchctl)
+ */
 export function installMac() {
   const plist = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -58,47 +84,15 @@ export function installMac() {
 </plist>
 `;
 
-  const plistPath = path.join(
-    process.env.HOME,
-    "Library/LaunchAgents/com.infra-watch.plist"
-  );
+  const plistPath = path.join(homeDir, "Library/LaunchAgents/com.infra-watch.plist");
   fs.writeFileSync(plistPath, plist);
 
   execSync(`launchctl load ${plistPath}`);
   console.log("✅ Infra-Watch instalado no macOS (launchctl) e iniciará no boot!");
 }
 
-/**
- * Windows (schtasks)
- */
-export function installWindows() {
-  const cmd = `schtasks /Create /SC ONSTART /TN "InfraWatch" /TR "\\"${process.execPath}\\" \\"${process.argv[1]}\\" start" /F`;
-  execSync(cmd, { stdio: "inherit" });
-  console.log("✅ Infra-Watch instalado no Windows e iniciará no boot!");
-}
-
-
-export function uninstallLinux() {
-  const servicePath = "/etc/systemd/system/infra-watch.service";
-
-  try {
-    execSync(`sudo systemctl stop infra-watch`);
-    execSync(`sudo systemctl disable infra-watch`);
-    if (fs.existsSync(servicePath)) {
-      execSync(`sudo rm -f ${servicePath}`);
-    }
-    execSync(`sudo systemctl daemon-reload`);
-    console.log("🗑️ Infra-Watch removido do systemd!");
-  } catch (err) {
-    console.error("❌ Erro ao remover do systemd:", err.message);
-  }
-}
-
 export function uninstallMac() {
-  const plistPath = path.join(
-    process.env.HOME,
-    "Library/LaunchAgents/com.infra-watch.plist"
-  );
+  const plistPath = path.join(homeDir, "Library/LaunchAgents/com.infra-watch.plist");
 
   try {
     execSync(`launchctl unload ${plistPath}`);
@@ -111,6 +105,14 @@ export function uninstallMac() {
   }
 }
 
+/**
+ * Windows (Task Scheduler)
+ */
+export function installWindows() {
+  const cmd = `schtasks /Create /SC ONSTART /TN "InfraWatch" /TR "\\"${process.execPath}\\" \\"${process.argv[1]}\\" start" /F`;
+  execSync(cmd, { stdio: "inherit" });
+  console.log("✅ Infra-Watch instalado no Windows e iniciará no boot!");
+}
 
 export function uninstallWindows() {
   try {
@@ -120,5 +122,3 @@ export function uninstallWindows() {
     console.error("❌ Erro ao remover do Windows:", err.message);
   }
 }
-
-
