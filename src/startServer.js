@@ -78,6 +78,7 @@ export async function startServer() {
   }
   try {
     const serverId = await getServerId();
+
     const response = await fetch(`${API_URL}/api/v1/server/exist/${serverId}/GET`, {
       method: "GET",
       headers: {
@@ -86,8 +87,10 @@ export async function startServer() {
       },
     });
 
+
     if (response.status === 403 || response.status === 401) {
-      console.log("Usuário não autorizado.");
+      const message = await response.json();
+      console.log(message.message || "Usuário não autorizado.");
       process.exit(1);
     }
     if (response.status !== 200) {
@@ -97,11 +100,11 @@ export async function startServer() {
 
     const data = await response.json();
 
-    //setInterval(async () => {
-    const payload = await collectMetrics(serverId);
-    //console.log("Payload para enviar:", payload);
-    await requestAPI(payload);
-    //}, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
+    setInterval(async () => {
+      const payload = await collectMetrics(serverId);
+      //console.log("Payload para enviar:", payload);
+      await requestAPI(payload);
+    }, Number(data.time_ms || 60000)); // Pega o intervalo do servidor ou usa 60 segundos como padrão
   } catch (error) {
     console.error("Erro ao iniciar o servidor:", error);
   }

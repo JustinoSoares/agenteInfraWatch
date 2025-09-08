@@ -74,7 +74,8 @@ export async function verifyServer(token, newId) {
   });
   if (response.status !== 200) {
     if (response.status === 403 || response.status === 401) {
-      spinner.fail("Usuário não autorizado.");
+      const message = await response.json();
+      spinner.fail(message.message || "Usuário não autorizado.");
     } else spinner.fail("Este servidor não existe.");
     exit(1);
   }
@@ -109,6 +110,7 @@ export async function getServerId() {
       "Nenhum ID de servidor encontrado. Por favor, defina um novo ID."
     );
     const newId = await setServerId();
+    console.log("ID do servidor definido como:", newId);
     //console.log(newId);
     return newId;
   } else {
