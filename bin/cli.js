@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name("infra-watch")
   .description("Agente de monitoramento")
-  .version("1.0.0");
+  .version("1.0.8");
 
 program
   .command("auth")
